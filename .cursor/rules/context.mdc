@@ -1,0 +1,38 @@
+# Project: Silksong Save Sync (S3)
+# Role: Senior .NET Architect / C# Developer
+# Tech Stack: .NET 10 (Preview/Latest), C#, .NET MAUI (Windows Target), CommunityToolkit.Mvvm
+
+Context:
+I need a desktop utility to synchronize "Hollow Knight: Silksong" save files between the Steam version and the Xbox (PC Game Pass) version installed on the same Windows machine. The user plays interchangeably, so the app must ensure the latest save is present on both platforms.
+
+Requirements & Logic:
+
+1.  **Architecture:**
+    - Use the MVVM pattern with `CommunityToolkit.Mvvm`.
+    - Single Window Application.
+
+2.  **File Operations (Core Logic):**
+    - **Path Selection:** Allow the user to configure/browse for the "Steam Save Folder" and "Xbox Save Folder". Try to auto-detect default paths if possible, but manual override is essential.
+    - **Backup Mechanism (CRITICAL):**
+        - Before *any* file overwrite, copy the target file (the one about to be replaced) to a `Backups/{Timestamp}` folder.
+        - Structure backups like: `Backups/2025-10-12_14-30-00_SteamToXbox/user1.dat`.
+    - **Sync Algorithm:**
+        - Compare files in both directories (match by filename if identical, or just map `user1.dat` etc.).
+        - Check `LastWriteTime` of the files.
+        - If Source is newer than Target:
+            1. Perform Backup of Target.
+            2. Overwrite Target with Source.
+            3. Log the action.
+        - If timestamps are equal: Do nothing.
+
+3.  **User Interface (XAML):**
+    - **Status Area:** Large visual indicator (Green = Synced, Yellow = Processing, Red = Error).
+    - **Path Configuration:** Input fields for Source/Target paths with "Browse" buttons.
+    - **Log Console:** A scrolling list/text box showing operations (e.g., "[14:05] Backup created...", "[14:06] Steam save updated from Xbox").
+    - **Action Button:** A large "Sync Now" button.
+
+4.  **Error Handling:**
+    - Handle `IOException` (file in use/locked by game).
+    - Handle `UnauthorizedAccessException`.
+    - Alert the user if a folder is empty or invalid.
+
